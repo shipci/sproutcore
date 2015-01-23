@@ -143,3 +143,57 @@ test("verify pointer picker pane content container is visible at correct locatio
     panePointer.destroy();
   });
 });
+
+test("verify animated picker pane content container is visible at correct location with right size", function () {
+  var PanePointer = SC.PickerPane.extend({
+    layout: { width: 50, height: 50 },
+    contentView: SC.View.extend({
+      createChildViews: function() {
+        this.invokeLater(function() {
+          this.get('pane').adjust({
+            width: 300,
+            height: 200
+          });
+        });
+      },
+    })
+  });
+
+  panePointer = PanePointer.create();
+
+  SC.run(function () {
+    panePointer.popup(anchor.view('anchor'), SC.PICKER_POINTER, [3, 0, 1, 2, 2]);
+  });
+
+  stop(2000);
+
+  setTimeout( function(){
+    evaluatePicker(panePointer);
+    var left = panePointer.layoutStyle().left;
+
+    SC.run(function () {
+      panePointer.destroy();
+    });
+
+    var panePointer2 = PanePointer.create({
+      transitionIn: SC.View.POP_IN,
+      transitionOut: SC.View.SCALE_OUT
+    });
+
+    SC.run(function () {
+      panePointer2.popup(anchor.view('anchor'), SC.PICKER_POINTER, [3, 0, 1, 2, 2]);
+    });
+
+    setTimeout( function(){
+      evaluatePicker(panePointer2);
+      var ret = panePointer2.layoutStyle();
+      equals(ret.left, left, "pane should have the same height as the picker which don't has transitions");
+
+      SC.run(function () {
+        panePointer2.destroy();
+      });
+      window.start();
+    }, 500);
+  }, 500);
+  
+});
